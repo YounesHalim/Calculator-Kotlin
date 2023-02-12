@@ -2,8 +2,6 @@ package com.calculator
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -11,12 +9,14 @@ import android.widget.TextView
 import kotlinx.coroutines.*
 import org.mozilla.javascript.Context
 import org.mozilla.javascript.Scriptable
+import org.mozilla.javascript.Undefined
 
 class MainActivity : AppCompatActivity() {
     private lateinit var tvExpression: TextView
     private lateinit var tvResult: TextView
-    private lateinit var operand: String
+    private lateinit var tempResult: String
     private val operators: Regex = "[+\\-*/%√÷×]".toRegex()
+
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,10 +48,8 @@ class MainActivity : AppCompatActivity() {
 
     fun onOperator(view: View) {
         tvExpression.also {
-            if (it.text.isEmpty() || onOperatorAdded(it)) {
-                return@also
-            }
-            it.append((view as Button).text).apply { operand = this.toString() }
+            if (it.text.isEmpty() || onOperatorAdded(it)) return@also
+            it.append((view as Button).text)
         }
     }
 
@@ -69,33 +67,47 @@ class MainActivity : AppCompatActivity() {
                 || expression.text.endsWith("√")
                 || expression.text.endsWith(".")
     }
+
     fun compute(view: View) {
         tvExpression.apply {
             tvExpression.text = tvResult.text
+        }.also {
+            tvResult.text = ""
         }
     }
-    private fun results () {
+
+    /**
+     * @author Younes HALIM
+     */
+    private fun results() {
         val context: Context = Context.enter()
         context.optimizationLevel = -1
         val scope: Scriptable = context.initStandardObjects()
-        val result: Any = context.evaluateString(scope, tvExpression.text.toString(), "Javascript", 1, null)
+        val result: Any = context.evaluateString(scope, tempResult, "Javascript", 1, null)
         Context.exit()
-        if (result.toString().isNotEmpty()) {
-            tvResult.text = result.toString()
+        if (result is Undefined) {
+            tvResult.text = ""
             return
         }
-        tvResult.text = ""
+        tvResult.text = result.toString()
     }
+
     fun clear(view: View) {
         tvExpression.text = "".also { tvResult.text = "" }
     }
+
     fun onDigit(view: View) {
         tvExpression.also {
-            it.append((view as Button).text)
+            val temp = it.append((view as Button).text)
+            tempResult = temp.toString()
         }
         if (tvExpression.text.contains(operators)) {
+            tempResult = tvExpression.text.toString()
+                .replace(Regex("÷"), "/")
+                .replace(Regex("×"), "*")
             results()
         } else return
+
     }
 
     /**
@@ -110,7 +122,6 @@ class MainActivity : AppCompatActivity() {
             counter++
             if (expressionSize >= counter) {
                 this.text = this.text.substring(0, expressionSize - counter)
-                if (onOperatorAdded(this)) return@apply
                 results()
             }
         }
