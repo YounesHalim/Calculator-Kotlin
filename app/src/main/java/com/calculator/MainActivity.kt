@@ -18,8 +18,10 @@ class MainActivity : AppCompatActivity() {
         init()
         GlobalScope.launch(Dispatchers.Main) { typeWriterEffect() }
     }
+
     /**
      * Uses Kotlin Coroutine to simulate typewriter effect
+     * @author Younes Halim
      * @return Unit
      */
     private suspend fun typeWriterEffect() {
@@ -32,9 +34,31 @@ class MainActivity : AppCompatActivity() {
             delay(500)
         }
     }
+
     private fun init() {
         tvExpression = findViewById(R.id.tvExpression)
         tvResult = findViewById(R.id.tvResult)
+    }
+
+    fun onOperator(view: View) {
+        tvExpression.also {
+            if (it.text.isEmpty() || it.text.endsWith(".") || onOperatorAdded(it)) return@also
+            it.append((view as Button).text)
+        }
+    }
+
+    /**
+     * Returns a boolean if the expression ends with an operator
+     * @author Younes Halim
+     * @return Boolean
+     */
+    private fun onOperatorAdded(expression: TextView): Boolean {
+        return expression.text.endsWith("%")
+                || expression.text.endsWith("+")
+                || expression.text.endsWith("-")
+                || expression.text.endsWith("÷")
+                || expression.text.endsWith("×")
+                || expression.text.endsWith("√")
     }
     fun compute(view: View) {}
     fun clear(view: View) {
