@@ -18,7 +18,6 @@ class MainActivity : AppCompatActivity() {
         init()
         GlobalScope.launch(Dispatchers.Main) { typeWriterEffect() }
     }
-
     /**
      * Uses Kotlin Coroutine to simulate typewriter effect
      * @return Unit
@@ -33,9 +32,15 @@ class MainActivity : AppCompatActivity() {
             delay(500)
         }
     }
-
     private fun init() {
         tvExpression = findViewById(R.id.tvExpression)
         tvResult = findViewById(R.id.tvResult)
+    }
+    fun compute(view: View) {}
+    fun clear(view: View) {
+        tvExpression.text = "".also { tvResult.text = "" }
+    }
+    fun onDigit(view: View) {
+        tvExpression.also { it.append((view as Button).text) }
     }
 }
