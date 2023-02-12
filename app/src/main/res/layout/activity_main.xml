@@ -34,7 +34,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="bottom|end"
                     android:textColor="@color/white"
-                    android:textSize="30sp"
+                    android:textSize="70sp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -48,7 +48,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="bottom|end"
                     android:textColor="@color/white"
-                    android:textSize="30sp"
+                    android:textSize="70sp"
                     android:textStyle="bold"
                     tools:text="|" />
 
@@ -61,7 +61,7 @@
                 android:layout_margin="10dp"
                 android:gravity="bottom|end"
                 android:textColor="@color/white"
-                android:textSize="50sp"
+                android:textSize="30sp"
                 tools:text="50" />
         </LinearLayout>
     </LinearLayout>
@@ -311,6 +311,7 @@
                         android:layout_weight="1"
                         android:backgroundTint="@color/black"
                         android:text=""
+                        android:onClick="delete"
                         android:textColor="@color/white"
                         android:textSize="20sp" />
 
