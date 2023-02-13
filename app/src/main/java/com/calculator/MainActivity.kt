@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.HorizontalScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.*
@@ -57,18 +58,44 @@ class MainActivity : AppCompatActivity() {
      * If either of these conditions is met, the function returns without making any changes.
      * If the expression text view is not empty and no operator has been added, the function appends the operator text to the expression text view.
      * @return Unit
+     * @param View
      * @author Younes Halim
      */
     fun onOperator(view: View) {
         tvExpression.also {
             if (it.text.isEmpty() || onOperatorAdded(it)) return@also
+            if (onPlusMinusOperator(view, it)) return@also
             it.append((view as Button).text)
         }
+        scrollToEnd()
+    }
+
+    /**
+     * Helper function for handling the "+/-" operator in a calculator application.
+     * @return Boolean
+     * @param View
+     * @param TextView
+     * @author Younes Halim
+     */
+    private fun onPlusMinusOperator(view: View, it: TextView): Boolean {
+        if ((view as Button).id == R.id.plusMinusSymbol) {
+            return if (!it.text.startsWith("-")) {
+                it.text = "-${it.text}"
+                tempResult = it.text.toString()
+                true
+            } else {
+                it.text = it.text.subSequence(1, it.text.length)
+                tempResult = it.text.toString()
+                true
+            }
+        }
+        return false
     }
 
     /**
      * Returns a boolean if the expression ends with an operator
      * @author Younes Halim
+     * @param TextView
      * @return Boolean
      */
     private fun onOperatorAdded(expression: TextView): Boolean {
@@ -81,14 +108,19 @@ class MainActivity : AppCompatActivity() {
                 || expression.text.endsWith(".")
     }
 
-    fun compute(view: View) {
+    /**
+     * Updates the text of the "tvExpression" TextView to the text of the "tvResult" TextView and then sets the text of the "tvResult" TextView to an empty string.
+     * @param View
+     * @author Younes Halim
+     */
+    fun computedResult(view: View) {
         tvExpression.apply { tvExpression.text = tvResult.text }.also { tvResult.text = "" }
     }
 
     /**
      * @author Younes HALIM
      */
-    private fun results() {
+    private fun results(): String? {
         val context: Context = Context.enter()
         context.optimizationLevel = -1
         val scope: Scriptable = context.initStandardObjects()
@@ -96,10 +128,11 @@ class MainActivity : AppCompatActivity() {
         Context.exit()
         if (result is Undefined) {
             tvResult.text = ""
-            return
+            return null
         }
         tvResult.text = result.toString()
         Log.i("Expression", scientificNotation(result = result.toString()))
+        return result.toString()
     }
 
     fun clear(view: View) {
@@ -108,6 +141,7 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * @author Younes Halim
+     * @param View
      */
     fun onDigit(view: View) {
         tvExpression.also {
@@ -117,13 +151,17 @@ class MainActivity : AppCompatActivity() {
         if (tvExpression.text.contains(operators)) {
             tempResult = parsedExpression(tvExpression)
             results()
-        } else return
+        }
+        scrollToEnd()
     }
 
     /**
-     * Clears the calculator TV number by number
-     * Refreshes the results screen
+     * Delete single character from tvExpression object
+     * The modified expression is then passed to the "parsedExpression" method to convert mathematical symbols and is stored in the "tempResult" variable.
+     * The "onOperatorAdded" method is called on the updated expression.
+     * If it returns true, the function returns. Finally, the "results" method is called to update the result.
      * @return Unit
+     * @param View
      * @author Younes Halim
      */
     fun delete(view: View) {
@@ -143,8 +181,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Helper function:
-     * @param {TextView}
+     * Helper function: format expressions for calculation
+     * @param TextView
      * @return String
      * @author Younes Halim
      */
@@ -157,17 +195,34 @@ class MainActivity : AppCompatActivity() {
      * It splits the string into a list of parts separated by "." and checks the length of the decimal part.
      * If the decimal length is greater than or equal to 3, it shortens it to 3 decimal places and appends "e10^(decimalLength-3)" to represent the scientific notation.
      * The final result is joined back into a string and returned.
-     * @param {String}
+     * @param String
+     * @param Int
      * @author Younes Halim
      * @return String
      */
-    private fun scientificNotation(result: String): String {
+    private fun scientificNotation(result: String, decimal: Int = 3): String {
         if (!result.contains(".") || result.length >= 9) return result
         val expression: MutableList<String> = result.split(".") as MutableList<String>
         val decimalLength: Int = expression[1].length
-        if (expression[1].length < 3) return result
+        if (expression[1].length < decimal) return result
         return expression.apply {
-            set(1, "${this[1].substring(0, 3)}e10^${decimalLength - 3}")
+            set(1, "${this[1].substring(0, 3)}e10^${decimalLength - decimal}")
         }.joinToString(".")
+    }
+
+    /**
+     * Used to scroll a horizontal scroll view to the end.
+     * It finds the HorizontalScrollView by using the findViewById method and passing the id of the view.
+     * Then it calls the post method to schedule a task to be executed on the UI thread.
+     * Within the task, it calls the scrollTo method on the HorizontalScrollView and passes the width of the TextView and 0 as arguments to scroll to the end.
+     * @author Younes Halim
+     */
+    private fun scrollToEnd() {
+        findViewById<HorizontalScrollView>(R.id.horizontalScroll)
+            .apply {
+                this.post {
+                    this.scrollTo(tvExpression.width, 0)
+                }
+            }
     }
 }
