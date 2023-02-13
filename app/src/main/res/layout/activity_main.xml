@@ -25,24 +25,29 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:layout_margin="10dp"
-                android:gravity="bottom"
+                android:gravity="end"
                 android:orientation="horizontal">
+                <HorizontalScrollView
+                    android:id="@+id/horizontalScroll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:id="@+id/tvExpression"
+                        android:layout_width="wrap_content"
+                        android:scrollHorizontally="true"
+                        android:singleLine="true"
+                        android:ellipsize="none"
+                        android:layout_height="wrap_content"
+                        android:gravity="bottom|end"
+                        android:textColor="@color/white"
+                        android:textSize="70sp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:text="10+40" />
+                </HorizontalScrollView>
 
-                <TextView
-                    android:id="@+id/tvExpression"
-                    android:layout_width="0dp"
-                    android:layout_weight="2"
-                    android:singleLine="true"
-                    android:ellipsize="none"
-                    android:layout_height="wrap_content"
-                    android:gravity="bottom|end"
-                    android:textColor="@color/white"
-                    android:textSize="70sp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    tools:text="10+40" />
 
                 <TextView
                     android:id="@+id/caret"
@@ -108,6 +113,7 @@
                         android:textStyle="bold" />
 
                     <Button
+                        android:id="@+id/plusMinusSymbol"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_margin="5dp"
@@ -361,7 +367,7 @@
                         android:layout_margin="5dp"
                         android:layout_weight="1"
                         android:backgroundTint="@color/black"
-                        android:onClick="compute"
+                        android:onClick="computedResult"
                         android:text="="
                         android:textColor="@color/Sunglo"
                         android:textSize="20sp" />
