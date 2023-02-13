@@ -120,6 +120,7 @@
                         android:textStyle="bold" />
 
                     <Button
+                        android:id="@+id/modulusSymbol"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_margin="5dp"
@@ -132,10 +133,12 @@
                         android:textStyle="bold" />
 
                     <Button
+                        android:id="@+id/divideSymbol"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_margin="5dp"
                         android:layout_weight="1"
+                        android:textStyle="bold"
                         android:backgroundTint="@color/black"
                         android:onClick="onOperator"
                         android:text="÷"
@@ -186,7 +189,9 @@
                         android:textSize="20sp" />
 
                     <Button
+                        android:id="@+id/multiplySymbol"
                         android:layout_width="0dp"
+                        android:textStyle="bold"
                         android:layout_height="wrap_content"
                         android:layout_margin="5dp"
                         android:layout_weight="1"
@@ -228,6 +233,7 @@
                         android:textSize="20sp" />
 
                     <Button
+
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_margin="5dp"
@@ -239,9 +245,11 @@
                         android:textSize="20sp" />
 
                     <Button
+                        android:id="@+id/minusSymbol"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_margin="5dp"
+                        android:textStyle="bold"
                         android:layout_weight="1"
                         android:backgroundTint="@color/black"
                         android:onClick="onOperator"
@@ -293,6 +301,7 @@
                     <Button
                         android:id="@+id/plusSymbol"
                         android:layout_width="0dp"
+                        android:textStyle="bold"
                         android:layout_height="wrap_content"
                         android:layout_margin="5dp"
                         android:layout_weight="1"
@@ -316,9 +325,10 @@
                         android:layout_margin="5dp"
                         android:layout_weight="1"
                         android:backgroundTint="@color/black"
-                        android:text=""
+                        android:text="\u232b"
+                        android:textStyle="bold"
                         android:onClick="delete"
-                        android:textColor="@color/white"
+                        android:textColor="@color/teal_200"
                         android:textSize="20sp" />
 
                     <Button
@@ -333,10 +343,12 @@
                         android:textSize="20sp" />
 
                     <Button
+                        android:id="@+id/decimalPoint"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_margin="5dp"
                         android:layout_weight="1"
+                        android:onClick="onOperator"
                         android:backgroundTint="@color/black"
                         android:text="."
                         android:textColor="@color/white"
@@ -344,6 +356,7 @@
 
                     <Button
                         android:layout_width="0dp"
+                        android:textStyle="bold"
                         android:layout_height="wrap_content"
                         android:layout_margin="5dp"
                         android:layout_weight="1"
