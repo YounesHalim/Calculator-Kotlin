@@ -1,5 +1,6 @@
 package com.calculator
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -29,9 +30,9 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Uses Kotlin Coroutine to simulate typewriter effect
-     * The loop runs indefinitely and alternates the visibility of the caret every 500 milliseconds using delay function. This creates a blinking effect that simulates the appearance of a typing cursor.
+     * The loop runs indefinitely and alternates the visibility of the caret every 500 milliseconds using delay function.
+     * This creates a blinking effect that simulates the appearance of a typing cursor.
      * @author Younes Halim
-     * @return Unit
      */
     private suspend fun typeWriterEffect() {
         val caret: TextView = findViewById<TextView?>(R.id.caret).also { it.append("|") }
@@ -45,7 +46,6 @@ class MainActivity : AppCompatActivity() {
     /**
      * initializes the TextViews 'tvExpression' and 'tvResult' by finding their respective IDs in the layout file using the findViewById method.
      * @author Younes Halim
-     * @return Unit
      */
     private fun init() {
         tvExpression = findViewById(R.id.tvExpression)
@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Handles the logic for when a mathematical operator button is clicked in the calculator.
-     * The function first checks if the expression text view is empty or if an operator has already been added to the expression.
+     * The function first checks if the expression text view is empty or if an operator has already been added to the expression and if the operator is not equal to plus/minus sign.
      * If either of these conditions is met, the function returns without making any changes.
      * If the expression text view is not empty and no operator has been added, the function appends the operator text to the expression text view.
      * @return Unit
@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
      */
     fun onOperator(view: View) {
         tvExpression.also {
-            if (it.text.isEmpty() || onOperatorAdded(it)) return@also
+            if (it.text.isEmpty() || onOperatorAdded(it) && (view as Button).id != R.id.plusMinusSymbol) return@also
             if (onPlusMinusOperator(view, it)) return@also
             it.append((view as Button).text)
         }
@@ -77,6 +77,7 @@ class MainActivity : AppCompatActivity() {
      * @param TextView
      * @author Younes Halim
      */
+    @SuppressLint("SetTextI18n")
     private fun onPlusMinusOperator(view: View, it: TextView): Boolean {
         if ((view as Button).id == R.id.plusMinusSymbol) {
             return if (!it.text.startsWith("-")) {
@@ -99,13 +100,9 @@ class MainActivity : AppCompatActivity() {
      * @return Boolean
      */
     private fun onOperatorAdded(expression: TextView): Boolean {
-        return expression.text.endsWith("%")
-                || expression.text.endsWith("+")
-                || expression.text.endsWith("-")
-                || expression.text.endsWith("÷")
-                || expression.text.endsWith("×")
-                || expression.text.endsWith("√")
-                || expression.text.endsWith(".")
+        charArrayOf('%', '+', '-', '÷', '×', '√', '.')
+            .forEach { c: Char -> if (expression.text.endsWith(c)) return true }
+        return false
     }
 
     /**
@@ -114,10 +111,18 @@ class MainActivity : AppCompatActivity() {
      * @author Younes Halim
      */
     fun computedResult(view: View) {
-        tvExpression.apply { tvExpression.text = tvResult.text }.also { tvResult.text = "" }
+        tvExpression.apply {
+            if (tvResult.text.split(".")[1] == "0")
+                tvExpression.text = tvResult.text.split(".")[0]
+            else {
+                tvExpression.text = tvResult.text
+            }
+            tvResult.text = ""
+        }
     }
-
     /**
+     * Evaluates the expression stored in "tempResult" using JavaScript engine and returns the result as a string.
+     * @return String?
      * @author Younes HALIM
      */
     private fun results(): String? {
@@ -130,16 +135,24 @@ class MainActivity : AppCompatActivity() {
             tvResult.text = ""
             return null
         }
-        tvResult.text = result.toString()
+        tvResult.text = scientificNotation(result = result.toString())
         Log.i("Expression", scientificNotation(result = result.toString()))
         return result.toString()
     }
 
+    /**
+     * Clears the calculator screen.
+     * @param View
+     * @author Younes Halim
+     */
     fun clear(view: View) {
         tvExpression.text = "".also { tvResult.text = "" }
     }
 
     /**
+     * onDigit function updates the expression TextView by appending the text of the button that was clicked.
+     * Sets the tempResult string to the updated expression.
+     *
      * @author Younes Halim
      * @param View
      */
@@ -191,22 +204,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * function formats a string result in scientific notation if the decimal length is greater than or equal to 3.
+     * function formats a string result in scientific notation if the decimal length is greater than 7.
      * It splits the string into a list of parts separated by "." and checks the length of the decimal part.
-     * If the decimal length is greater than or equal to 3, it shortens it to 3 decimal places and appends "e10^(decimalLength-3)" to represent the scientific notation.
+     * If the decimal length is greater than or equal to 7, it shortens it to 4 decimal places and appends "e10^(decimalLength-3)" to represent the scientific notation.
      * The final result is joined back into a string and returned.
      * @param String
      * @param Int
      * @author Younes Halim
      * @return String
      */
-    private fun scientificNotation(result: String, decimal: Int = 3): String {
-        if (!result.contains(".") || result.length >= 9) return result
+    private fun scientificNotation(result: String, decimal: Int = 7): String {
+        if (!result.contains(".") || result.split(".")[1].length < decimal) return result
         val expression: MutableList<String> = result.split(".") as MutableList<String>
         val decimalLength: Int = expression[1].length
         if (expression[1].length < decimal) return result
         return expression.apply {
-            set(1, "${this[1].substring(0, 3)}e10^${decimalLength - decimal}")
+            set(1, "${this[1].substring(0, 4)}e10^${decimalLength - 4}")
         }.joinToString(".")
     }
 
