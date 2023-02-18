@@ -1,7 +1,7 @@
 package com.calculator.controller
 import android.content.Context
 import android.content.SharedPreferences
-import com.calculator.model.HistoricalData
+import com.calculator.model.History
 
 class PreferenceHandlerController(context: Context) {
     private val preferences: SharedPreferences = context.getSharedPreferences("my_pref", Context.MODE_PRIVATE)
@@ -9,9 +9,9 @@ class PreferenceHandlerController(context: Context) {
     /**
      * Takes HistoricalData object and saves it using shared preferences API
      * @author Younes Halim
-     * @param HistoricalData
+     * @param History
      */
-    fun saveComputedExpressions(history: HistoricalData) {
+    fun saveComputedExpressions(history: History) {
         with(preferences.edit()) {
             putString(history.dateOfExecution, "${history.mathematicalExpression};${history.result}")
             this.apply()
@@ -24,7 +24,7 @@ class PreferenceHandlerController(context: Context) {
      */
     fun getSharedPreferencesDataAsMutableMap(): MutableMap<String, *> {
         val size = preferences.all.size
-        return if(size == 0) mutableMapOf("1" to "Empty") else preferences.all
+        return if(size == 0) mutableMapOf(TimeController.getCurrentTime() to "Empty") else preferences.all
     }
 
     /**
