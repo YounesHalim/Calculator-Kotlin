@@ -2,12 +2,20 @@ package com.calculator
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.HorizontalScrollView
+import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.calculator.component.CardComponent
+import com.calculator.controller.PreferenceHandlerController
+import com.calculator.model.HistoricalData
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.*
 import org.mozilla.javascript.Context
 import org.mozilla.javascript.Scriptable
@@ -18,6 +26,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvExpression: TextView
     private lateinit var tvResult: TextView
     private lateinit var tempResult: String
+    private lateinit var componentContainer: LinearLayout
+    private lateinit var bottomCard: BottomSheetDialog
     private val operators: Regex = "[+\\-*/%√÷×]".toRegex()
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -35,7 +45,7 @@ class MainActivity : AppCompatActivity() {
      * @author Younes Halim
      */
     private suspend fun typeWriterEffect() {
-        val caret: TextView = findViewById<TextView?>(R.id.caret).also { it.append("|") }
+        val caret: TextView = findViewById<TextView?>(R.id.caret).also { it.text = "|" }
         while (true) {
             caret.visibility =
                 if (caret.visibility == View.INVISIBLE) View.VISIBLE else View.INVISIBLE
@@ -44,12 +54,42 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * initializes the TextViews 'tvExpression' and 'tvResult' by finding their respective IDs in the layout file using the findViewById method.
+     * Initializes the UI components and sets the toolbar as the app's action bar.
      * @author Younes Halim
      */
     private fun init() {
         tvExpression = findViewById(R.id.tvExpression)
         tvResult = findViewById(R.id.tvResult)
+        setSupportActionBar(findViewById(R.id.my_toolbar))
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        super.onCreateOptionsMenu(menu)
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.help -> {
+                Toast.makeText(this@MainActivity, "Developed by Younes Halim", Toast.LENGTH_LONG)
+                    .show()
+                true
+            }
+            R.id.history -> {
+                val view = layoutInflater.inflate(R.layout.bottom_card_dialog, null)
+                componentContainer = view.findViewById(R.id.dataContainer)
+                bottomCard = BottomSheetDialog(this)
+                GlobalScope.launch { cardGenerator() }
+                bottomCard.setContentView(view)
+                bottomCard.show()
+                true
+            }
+            else -> {
+                super.onOptionsItemSelected(item)
+            }
+        }
     }
 
     /**
@@ -120,10 +160,14 @@ class MainActivity : AppCompatActivity() {
             tvResult.text = ""
         }
     }
+
     /**
-     * Evaluates the expression stored in "tempResult" using JavaScript engine and returns the result as a string.
+     * Evaluates the expression in 'tempResult' string using JavaScript engine and saves the result in shared preferences.
+     * If result is Undefined, clears the result TextView and returns null.
+     * Otherwise, sets the result TextView with the result after formatting it with scientific notation and returns the result as a String.
+     * Also, saves the evaluated expression and its result as HistoricalData in shared preferences.
+     * @author Younes Halim
      * @return String?
-     * @author Younes HALIM
      */
     private fun results(): String? {
         val context: Context = Context.enter()
@@ -135,18 +179,32 @@ class MainActivity : AppCompatActivity() {
             tvResult.text = ""
             return null
         }
-        tvResult.text = scientificNotation(result = result.toString())
-        Log.i("Expression", scientificNotation(result = result.toString()))
+        val formattedResults: String = scientificNotation(result = result.toString())
+        tvResult.text = formattedResults
+        PreferenceHandlerController(this)
+            .saveComputedExpressions(
+                HistoricalData(
+                    mathematicalExpression = tvExpression.text.toString(),
+                    result = formattedResults
+                )
+            )
         return result.toString()
     }
 
     /**
-     * Clears the calculator screen.
+     * Clears the calculator screen or computational history data
      * @param View
      * @author Younes Halim
      */
     fun clear(view: View) {
-        tvExpression.text = "".also { tvResult.text = "" }
+        when (view.id) {
+            R.id.acButton -> tvExpression.text = "".also { tvResult.text = "" }
+            R.id.clearHistory -> {
+                PreferenceHandlerController(this@MainActivity).clearHistory()
+                componentContainer.removeAllViews()
+                componentContainer.requestLayout()
+            }
+        }
     }
 
     /**
@@ -237,5 +295,32 @@ class MainActivity : AppCompatActivity() {
                     this.scrollTo(tvExpression.width, 0)
                 }
             }
+    }
+    /**
+     * Suspended function that generates cards containing historical data by extracting it from the SharedPreferences in the main thread.
+     * If the SharedPreferences contains no data or "Empty" value, the function exits.
+     * If there is data, the function iterates over the map containing the key-value pairs of the SharedPreferences data and creates MaterialCardView components for each pair.
+     * The data for each card is displayed through a TextView in a LinearLayout inside the MaterialCardView, which is added to a parent container.
+     * @author Younes Halim
+     */
+    private suspend fun cardGenerator() = withContext(Dispatchers.Main) {
+        val mutableMapOfSavedData: MutableMap<String, *> =
+            PreferenceHandlerController(this@MainActivity).getSharedPreferencesDataAsMutableMap()
+        if (mutableMapOfSavedData.containsValue("Empty")) return@withContext else mutableMapOfSavedData.forEach { (key, value) ->
+            val cardContainer: MaterialCardView =
+                CardComponent()
+                    .materialCardViewContainer(context = this@MainActivity)
+            val linearLayout = CardComponent()
+                .linearLayoutContainer(this@MainActivity)
+            val textView = CardComponent()
+                .setHistoryData(
+                    key = key,
+                    value = value,
+                    context = this@MainActivity
+                )
+            linearLayout.addView(textView)
+            cardContainer.addView(linearLayout)
+            componentContainer.addView(cardContainer)
+        }
     }
 }
