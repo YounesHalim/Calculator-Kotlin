@@ -7,7 +7,7 @@ class PreferenceHandlerController(context: Context) {
     private val preferences: SharedPreferences = context.getSharedPreferences("my_pref", Context.MODE_PRIVATE)
 
     /**
-     * Takes History object and saves it in shared preferences
+     * Takes HistoricalData object and saves it using shared preferences API
      * @author Younes Halim
      * @param HistoricalData
      */
@@ -20,7 +20,7 @@ class PreferenceHandlerController(context: Context) {
     /**
      * Returns MutableMap of shared preferences data
      * @author Younes Halim
-     * @return MutableMap
+     * @return MutableMap<String, Any*>
      */
     fun getSharedPreferencesDataAsMutableMap(): MutableMap<String, *> {
         val size = preferences.all.size
