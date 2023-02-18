@@ -79,10 +79,10 @@ class CardComponent {
         }
         textView.setTextColor(ContextCompat.getColor(context, R.color.teal_200))
         fun callbackFormattedTime(time: String): () -> String =
-            { "Date: " + time.split("T")[0] + "\nTime: " + time.split("T")[1].subSequence(0, 8) }
+            { "Date: " + time.split("T")[0] + "\nTime: " + time.split("T")[1].subSequence(0, 8)  }
 
         fun callbackFormattedResults(results: String): () -> String =
-            { "Expression: " + results.split(";")[0] + "\nResult: " + results.split(";")[1] }
+            { if (results === "Empty" || results.isEmpty()) results else "Expression: " + results.split(";")[0] + "\nResult: " + results.split(";")[1] }
         textView.text =
             "${callbackFormattedTime(key)()}\n${callbackFormattedResults(value.toString())()}"
         return textView
