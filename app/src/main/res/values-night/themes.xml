@@ -13,5 +13,10 @@
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <item name="android:windowFullscreen">true</item>
         <!-- Customize your theme here. -->
+        <!-- Status bar color. -->
+        <item name="actionOverflowButtonStyle">@style/ThreeDotColor</item>
+    </style>
+    <style name="ThreeDotColor" parent="Widget.AppCompat.Light.ActionButton.Overflow">
+        <item name="tint">#ffffff</item>
     </style>
 </resources>
