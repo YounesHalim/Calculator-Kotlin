@@ -11,9 +11,10 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import com.calculator.component.CardComponent
 import com.calculator.controller.PreferenceHandlerController
-import com.calculator.model.HistoricalData
+import com.calculator.model.History
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.*
@@ -60,7 +61,11 @@ class MainActivity : AppCompatActivity() {
     private fun init() {
         tvExpression = findViewById(R.id.tvExpression)
         tvResult = findViewById(R.id.tvResult)
-        setSupportActionBar(findViewById(R.id.my_toolbar))
+        findViewById<Toolbar>(R.id.toolbar).apply {
+            this.title = ""
+            this.subtitle = ""
+            setSupportActionBar(this@apply)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -179,11 +184,11 @@ class MainActivity : AppCompatActivity() {
             tvResult.text = ""
             return null
         }
-        val formattedResults: String = scientificNotation(result = result.toString())
+        val formattedResults: String = if (result.toString() == "-0.0") result.toString().split("-")[1] else scientificNotation(result = result.toString())
         tvResult.text = formattedResults
         PreferenceHandlerController(this)
             .saveComputedExpressions(
-                HistoricalData(
+                History(
                     mathematicalExpression = tvExpression.text.toString(),
                     result = formattedResults
                 )
@@ -276,9 +281,8 @@ class MainActivity : AppCompatActivity() {
         val expression: MutableList<String> = result.split(".") as MutableList<String>
         val decimalLength: Int = expression[1].length
         if (expression[1].length < decimal) return result
-        return expression.apply {
-            set(1, "${this[1].substring(0, 4)}e10^${decimalLength - 4}")
-        }.joinToString(".")
+        return expression.apply { set(1, "${this[1].substring(0, 4)}e10^${decimalLength - 4}") }
+            .joinToString(".")
     }
 
     /**
@@ -306,18 +310,15 @@ class MainActivity : AppCompatActivity() {
     private suspend fun cardGenerator() = withContext(Dispatchers.Main) {
         val mutableMapOfSavedData: MutableMap<String, *> =
             PreferenceHandlerController(this@MainActivity).getSharedPreferencesDataAsMutableMap()
-        if (mutableMapOfSavedData.containsValue("Empty")) return@withContext else mutableMapOfSavedData.forEach { (key, value) ->
+        mutableMapOfSavedData.forEach { (key, value) ->
             val cardContainer: MaterialCardView =
-                CardComponent()
-                    .materialCardViewContainer(context = this@MainActivity)
-            val linearLayout = CardComponent()
-                .linearLayoutContainer(this@MainActivity)
-            val textView = CardComponent()
-                .setHistoryData(
-                    key = key,
-                    value = value,
-                    context = this@MainActivity
-                )
+                CardComponent().materialCardViewContainer(context = this@MainActivity)
+            val linearLayout = CardComponent().linearLayoutContainer(this@MainActivity)
+            val textView = CardComponent().setHistoryData(
+                key = key,
+                value = value,
+                context = this@MainActivity
+            )
             linearLayout.addView(textView)
             cardContainer.addView(linearLayout)
             componentContainer.addView(cardContainer)
