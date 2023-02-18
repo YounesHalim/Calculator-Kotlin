@@ -184,7 +184,8 @@ class MainActivity : AppCompatActivity() {
             tvResult.text = ""
             return null
         }
-        val formattedResults: String = if (result.toString() == "-0.0") result.toString().split("-")[1] else scientificNotation(result = result.toString())
+        val formattedResults: String = if (result.toString() == "-0.0") result.toString()
+            .split("-")[1] else scientificNotation(result = result.toString())
         tvResult.text = formattedResults
         PreferenceHandlerController(this)
             .saveComputedExpressions(
@@ -197,18 +198,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Clears the calculator screen or computational history data
+     * Clearing user data and updating the UI in response to a user action.
+     *
      * @param View
      * @author Younes Halim
      */
+    @OptIn(DelicateCoroutinesApi::class)
     fun clear(view: View) {
         when (view.id) {
             R.id.acButton -> tvExpression.text = "".also { tvResult.text = "" }
-            R.id.clearHistory -> {
-                PreferenceHandlerController(this@MainActivity).clearHistory()
-                componentContainer.removeAllViews()
-                componentContainer.requestLayout()
-            }
+            R.id.clearHistory -> PreferenceHandlerController(this@MainActivity)
+                .clearHistory().apply {
+                    componentContainer.removeAllViews()
+                }.also {
+                    GlobalScope.launch(Dispatchers.Main) { cardGenerator() }
+                    componentContainer.requestLayout()
+                }
         }
     }
 
@@ -300,6 +305,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
     }
+
     /**
      * Suspended function that generates cards containing historical data by extracting it from the SharedPreferences in the main thread.
      * If the SharedPreferences contains no data or "Empty" value, the function exits.
